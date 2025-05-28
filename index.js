@@ -3,6 +3,8 @@ const { program } = require('commander');
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
+const multer = require('multer');
+const upload = multer();
 
 program
   .requiredOption('-h, --host <host>', 'Host')
@@ -80,7 +82,26 @@ app.get('/notes', async (req, res) => {
     res.status(500).send('Failed to read notes');
   }
 });
+app.post('/write', upload.none(), async (req, res) => {
+  const noteName = req.body.note_name;
+  const noteText = req.body.note_text;
 
+  if (!noteName || !noteText) {
+    return res.status(400).send('Missing note name or text');
+  }
+
+  const filePath = path.join(cache, noteName);
+
+  try {
+    await fsp.access(filePath);
+    //існує
+    return res.status(400).send('Note already exists');
+  } catch {
+    //не існує, можна створити
+    await fsp.writeFile(filePath, noteText, 'utf-8');
+    res.status(201).send('Note created');
+  }
+});
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);
   console.log(`Cache directory: ${cache}`);

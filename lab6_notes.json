@@ -1,0 +1,117 @@
+{
+	"info": {
+		"_postman_id": "be37752d-3f6a-47b1-b305-52a579a3e001",
+		"name": "lab6_notes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "45169105",
+		"_collection_link": "https://sashakas.postman.co/workspace/sasha-kas's-Workspace~296e8d61-0318-4f6e-82bd-2ca60b04dbf6/collection/45169105-be37752d-3f6a-47b1-b305-52a579a3e001?action=share&source=collection_link&creator=45169105"
+	},
+	"item": [
+		{
+			"name": "get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:3000/notes/note1"
+			},
+			"response": []
+		},
+		{
+			"name": "put",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "text/plain",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "ураура",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": "http://localhost:3000/cache/note2"
+			},
+			"response": []
+		},
+		{
+			"name": "delete",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://localhost:3000/notes/note3"
+			},
+			"response": []
+		},
+		{
+			"name": "post",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "note_name",
+							"value": "note1",
+							"type": "text"
+						},
+						{
+							"key": "note_text",
+							"value": "ek",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/write",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"write"
+					],
+					"query": [
+						{
+							"key": "note_name",
+							"value": "note1",
+							"disabled": true
+						},
+						{
+							"key": "note_text",
+							"value": "уляля",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all notes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:3000/notes"
+			},
+			"response": []
+		},
+		{
+			"name": "get html",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:3000/UploadForm.html"
+			},
+			"response": []
+		}
+	]
+}

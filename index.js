@@ -4,8 +4,9 @@ const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
 const multer = require('multer');
-const app = express();
 const upload = multer();
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 program
   .requiredOption('-h, --host <host>', 'Host')
@@ -19,8 +20,40 @@ if (!fs.existsSync(cache)) {
   console.error('Cache directory does not exist.');
   process.exit(1);
 }
+const app = express();
+app.use(express.text());
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: перевірити роботу сервера
+ *     tags: [root]
+ *     responses:
+ *       200:
+ *         description: сервер працює
+ */
 app.get('/', (req, res) => res.send('Server is running.'));
+
+/**
+ * @swagger
+ * /notes/{name}:
+ *   get:
+ *     summary: отримати одну нотатку за ім'ям
+ *     tags: [notes]
+ *     parameters:
+ *       - in: path
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: вміст нотатки
+ *       404:
+ *         description: нотатку не знайдено
+ */
+
 app.get('/notes/:name', async (req, res) => {
   const noteName = req.params.name;
   const filePath = `${cache}/${noteName}`;
@@ -34,6 +67,30 @@ app.get('/notes/:name', async (req, res) => {
   }
 });
 app.use(express.text());
+/**
+ * @swagger
+ * /cache/{name}:
+ *   put:
+ *     summary: оновити існуючу нотатку
+ *     tags: [notes]
+ *     parameters:
+ *       - in: path
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *     responses:
+ *       200:
+ *         description: нотатку оновлено
+ *       404:
+ *         description: нотатку не знайдено
+ */
 app.put('/cache/:name', async (req, res) => {
   const noteName = req.params.name;
   const filePath = path.join(cache, noteName);
@@ -46,6 +103,25 @@ app.put('/cache/:name', async (req, res) => {
     res.status(404).send('Note not found');
   }
 });
+
+/**
+ * @swagger
+ * /notes/{name}:
+ *   delete:
+ *     summary: видалити нотатку
+ *     tags: [notes]
+ *     parameters:
+ *       - in: path
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: нотатку видалено
+ *       404:
+ *         description: нотатку не знайдено
+ */
 app.delete('/notes/:name', async (req, res) => {
   const noteName = req.params.name;
   const filePath = `${cache}/${noteName}`;
@@ -59,6 +135,19 @@ app.delete('/notes/:name', async (req, res) => {
     res.status(404).send('Note not found');
   }
 });
+
+/**
+ * @swagger
+ * /notes:
+ *   get:
+ *     summary: отримати всі нотатки
+ *     tags: [notes]
+ *     responses:
+ *       200:
+ *         description: список нотаток
+ *       404:
+ *         description: нотатки не знайдено
+ */
 app.get('/notes', async (req, res) => {
   try {
     const files = await fs.promises.readdir(cache);
@@ -82,6 +171,30 @@ app.get('/notes', async (req, res) => {
   }
 });
 app.use(express.urlencoded({ extended: true }));
+
+/**
+ * @swagger
+ * /write:
+ *   post:
+ *     summary: створити нову нотатку
+ *     tags: [notes]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               note_name:
+ *                 type: string
+ *               note_text:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: нотатку створено
+ *       400:
+ *         description: неправильні дані або нотатка вже існує
+ */
 app.post('/write', upload.none(), async (req, res) => {
   const noteName = req.body.note_name;
   const noteText = req.body.note_text;
@@ -105,6 +218,21 @@ app.post('/write', upload.none(), async (req, res) => {
 app.get('/UploadForm.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'UploadForm.html'));
 });
+
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Note API',
+      version: '1.0.0',
+      description: 'API для роботи з нотатками',
+    },
+  },
+  apis: [__filename], //документує всі ендпоінти в цьому файлі
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);

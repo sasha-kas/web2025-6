@@ -4,6 +4,7 @@ const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
 const multer = require('multer');
+const app = express();
 const upload = multer();
 
 program
@@ -19,8 +20,6 @@ if (!fs.existsSync(cache)) {
   process.exit(1);
 }
 
-const app = express();
-
 app.get('/', (req, res) => res.send('Server is running.'));
 app.get('/notes/:name', async (req, res) => {
   const noteName = req.params.name;
@@ -35,9 +34,9 @@ app.get('/notes/:name', async (req, res) => {
   }
 });
 app.use(express.text());
-app.put('/notes/:name', async (req, res) => {
+app.put('/cache/:name', async (req, res) => {
   const noteName = req.params.name;
-  const filePath = `${cache}/${noteName}`;
+  const filePath = path.join(cache, noteName);
 
   try {
     await fs.promises.access(filePath);
@@ -82,6 +81,7 @@ app.get('/notes', async (req, res) => {
     res.status(500).send('Failed to read notes');
   }
 });
+app.use(express.urlencoded({ extended: true }));
 app.post('/write', upload.none(), async (req, res) => {
   const noteName = req.body.note_name;
   const noteText = req.body.note_text;
@@ -102,6 +102,10 @@ app.post('/write', upload.none(), async (req, res) => {
     res.status(201).send('Note created');
   }
 });
+app.get('/UploadForm.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'UploadForm.html'));
+});
+
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);
   console.log(`Cache directory: ${cache}`);
